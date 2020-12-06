@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport"><meta content="yes" name="apple-mobile-web-app-capable"><meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"><meta content="telephone=no" name="format-detection"><meta name="description"><title>AFL_Note | Yu Liang's Blog</title><link rel="stylesheet" type="text/css" href="/blog/css/style.css?v=0.0.0"><link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/normalize.css/normalize.min.css"><link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/purecss/build/pure-min.min.css"><link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/purecss/build/grids-responsive-min.css"><link rel="stylesheet" href="//cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"><script type="text/javascript" src="//cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script><link rel="icon" mask="" sizes="any" href="/blog/favicon.ico"><link rel="Shortcut Icon" type="image/x-icon" href="/blog/favicon.ico"><link rel="apple-touch-icon" href="/blog/apple-touch-icon.png"><link rel="apple-touch-icon-precomposed" href="/blog/apple-touch-icon.png"><script type="text/javascript" src="//cdn.jsdelivr.net/npm/clipboard/dist/clipboard.min.js"></script><script type="text/javascript" src="//cdn.jsdelivr.net/gh/codeseven/toastr/build/toastr.min.js"></script><link rel="stylesheet" href="//cdn.jsdelivr.net/gh/codeseven/toastr/build/toastr.min.css"><meta name="generator" content="Hexo 5.2.0"></head><body><div class="body_container"><div id="header"><div class="site-name"><h1 class="hidden">AFL_Note</h1><a id="logo" href="/blog/.">Yu Liang's Blog</a><p class="description"></p></div><div id="nav-menu"><a class="current" href="/blog/."><i class="fa fa-home"> Home</i></a><a href="/blog/archives/"><i class="fa fa-archive"> Archive</i></a><a href="/blog/about/"><i class="fa fa-user"> About</i></a><a href="/blog/atom.xml"><i class="fa fa-rss"> RSS</i></a></div></div><div class="pure-g" id="layout"><div class="pure-u-1 pure-u-md-3-4"><div class="content_container"><div class="post"><h1 class="post-title">AFL_Note</h1><div class="post-meta">2020-11-30<span> | </span><span class="category"><a href="/blog/categories/Fuzzer/">Fuzzer</a></span></div><div class="post-content"><h1 id="Notes-for-AFL"><a href="#Notes-for-AFL" class="headerlink" title="Notes for AFL."></a>Notes for AFL.</h1><ul>
 <li><input checked="" disabled="" type="checkbox"> Pulling JPEGs out of thin air</li>
 <li><input checked="" disabled="" type="checkbox"> LLVM IR.</li>
-<li><input checked="" disabled="" type="checkbox"> afl_clang_fast.c and afl_llvm0pass.so.cc</li>
+<li><input checked="" disabled="" type="checkbox"> afl_clang_fast.c and afl_llvm_pass.so.cc</li>
 <li><input checked="" disabled="" type="checkbox"> AFL_min.c</li>
 <li><input checked="" disabled="" type="checkbox"> How to trim the input file?</li>
 <li><input checked="" disabled="" type="checkbox"> How do the program manage its queue?</li>
@@ -101,6 +101,25 @@
 <li>As high as 2x faster runtime. </li>
 <li>In file afl-clang-fast.c and afl-llvm-pass.so.cc. </li>
 <li><strong>__afl_prev_loc</strong> and <strong>__afl_area_ptr</strong> being declared in afl_llvm_rt.o.c, and being referenced as (GlobalValue::ExternalLinkage, GlobalVariable::GeneralDynamicTLSModel) in the afl_llcm_pass.so.cc.</li>
+</ul>
+</li>
+<li><p>Paper “Designing New Operating Primitives to Improve Fuzzing Performance”</p>
+<ul>
+<li>A performance optimization focused approach to improve AFL.</li>
+<li>Github link: <a href="https://github.com/tarafans/perf-fuzz.git">https://github.com/tarafans/perf-fuzz.git</a></li>
+<li>Three contributions:<ol>
+<li>Use system call snapshot() rather than fork().<ul>
+<li>fork() is not scalable with multiple cores. <ul>
+<li><input disabled="" type="checkbox"> <strong><em>This includes a lot of unnecessary features such as creating the reverse mapping of the child’s physical pages for swapping, which is a well-known performance bottleneck in Linux [8, 9, 11].</em></strong></li>
+</ul>
+</li>
+<li>snapshot() is a custom made system calls. </li>
+</ul>
+</li>
+<li>Create a duel file system to cache seed writing to the disk. Cache the file on memory.</li>
+<li>Shared In_memory Test_case log. For AFL syncing. Shared across different processes of AFL. Because it is in memory, it could be very fast, and avoid file system read/write violations and files iterations (latency). </li>
+</ol>
+</li>
 </ul>
 </li>
 </ul>
