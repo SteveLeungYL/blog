@@ -2,7 +2,7 @@
 <li><input checked="" disabled="" type="checkbox"> Pulling JPEGs out of thin air</li>
 <li><input checked="" disabled="" type="checkbox"> LLVM IR.</li>
 <li><input checked="" disabled="" type="checkbox"> afl_clang_fast.c and afl_llvm0pass.so.cc</li>
-<li><input disabled="" type="checkbox"> AFL_min.c</li>
+<li><input checked="" disabled="" type="checkbox"> AFL_min.c</li>
 <li><input checked="" disabled="" type="checkbox"> How to trim the input file?</li>
 <li><input checked="" disabled="" type="checkbox"> How do the program manage its queue?</li>
 <li><input checked="" disabled="" type="checkbox"> <a target="_blank" rel="noopener" href="http://lcamtuf.blogspot.com/2014/08/binary-fuzzing-strategies-what-works.html">http://lcamtuf.blogspot.com/2014/08/binary-fuzzing-strategies-what-works.html</a> (Fuzzing strategies details)</li>
@@ -11,7 +11,7 @@
 <li><input checked="" disabled="" type="checkbox"> <a target="_blank" rel="noopener" href="https://lcamtuf.blogspot.com/2016/02/say-hello-to-afl-analyze.html">https://lcamtuf.blogspot.com/2016/02/say-hello-to-afl-analyze.html</a> (Automatically inferring file syntax with afl-analyze)</li>
 <li><input disabled="" type="checkbox"> Difference between afl-tmin.c and afl-cmin.c?</li>
 <li><input disabled="" type="checkbox"> QEMU</li>
-<li><input disabled="" type="checkbox"> AFL-analyze. </li>
+<li><input checked="" disabled="" type="checkbox"> AFL-analyze. </li>
 <li><input disabled="" type="checkbox"> ClusterFuzz (Google Chrome) </li>
 <li><input disabled="" type="checkbox"> OSSFuzz.</li>
 <li><input disabled="" type="checkbox"> Project Springfield</li>
@@ -24,11 +24,12 @@
 </li>
 <li><input checked="" disabled="" type="checkbox"> Perf_tips.txt</li>
 <li><input checked="" disabled="" type="checkbox"> env_variables.txt</li>
+<li><input disabled="" type="checkbox"> Forward Symbolic analysis. (Not finished)</li>
 </ul>
 <ul>
 <li><p>afl_clang_fast use compiler level instrumentation, instead of the more crude assembly-level rewriting. Could be much faster than traditional methods, not feasible with GCC. I still do not understand the how that works.</p>
 </li>
-<li><p>C++ <strong>__thread</strong> keyword. Global variables but no need for across threads global protection’s values. If the variables are shared between threads, then each thread will maintain its own variable version. Can only works with Plain Old Data, cannot work with class, struct, union etc.</p>
+<li><p>C++ <strong>__thread</strong> keyword. Global variables but no need for across threads global protection’s values. If the variables are shared between threads, then each thread will maintain its own variable version. Can only works with Plain Old Data, cannot work with class, struct, union etc. (<strong><em>C language model</em></strong>)</p>
 </li>
 <li><p> AFL can generate larger size mutations than the original inputs, however, it depends on whether the program has character over character level identifications.</p>
 </li>
@@ -53,6 +54,54 @@
 </li>
 </ul>
 <ul>
-<li><h2 id="The-theory-behind-afl-analysis-c"><a href="#The-theory-behind-afl-analysis-c" class="headerlink" title="The theory behind afl-analysis.c"></a>The theory behind afl-analysis.c</h2></li>
+<li>The theory behind afl-analysis.c<ul>
+<li>Perform walking bytes, first bit flipping, sub_10 and add_10 operations across the input sequence, run with target binary, and observe the trace_bits checksums.<ul>
+<li>If checksums is not changing at all, then the current byte should be <strong>no-op (raw) data</strong>.</li>
+<li>If ANY bit flip causes the same change, then it could be <strong>checksums, magic values and maybe atomically compared tokens</strong>.</li>
+<li>Long sections with ANY bit flip causes the same change, it could be <strong>encrypted data, checksums</strong>. </li>
+<li><strong>“Pure” data sections</strong>, where analyzer-injected changes consistently elicit differing changes to control flow. (Not inferring in the code?)</li>
+</ul>
+</li>
+<li>Paper “ProFuzzer: On-the-ﬂy Input Type Probing for Better Zero-day Vulnerability Discovery”<ul>
+<li><strong>Is it really that practical? I don’t think the field identification is accurate.</strong></li>
+<li>Not using random mutations from the AFL, but use the heuristic from the fuzzing input analysis (input semantic) to put more focus on more targeted mutations. For example, not mutating <strong>raw data</strong> input sections etc. </li>
+<li>Two step process:<ol>
+<li>Iterating bytes with all possible values (0x00 to 0xff). Gain the rough idea of input data field semantics. </li>
+<li>Combine related fields together, and mutates them together. For example, the consecutive bytes whose specific content leads to the same exception path under mutation can be grouped into a ﬁeld.</li>
+</ol>
+</li>
+<li>6 input field types:<ul>
+<li>assertion: only a single valid value that allows the program to execute correctly.</li>
+<li>raw data: Nothing happens here.</li>
+<li>enumeration: Only a small set of valid values, with other values causing the program to erroneously terminate.</li>
+<li>loop count: Might impact loop counts.</li>
+<li>size: An input ﬁeld of the size type determines the amount of data the program should read from the input file for further processing. Similar to the offset type, if a size value causes any out-of-range data access, the program terminates with errors; within the valid range, different sizes may result in different execution paths, since different data are processed. The difference between offset and size lies in that if a size value is set to zero, errors must occur, while setting an offset to 0 likely does not cause similar problems.</li>
+<li>offset: The location from which the program can access the subsequent data in the input file. </li>
+</ul>
+</li>
+<li>The algorithm has a reprobing function, where a new input comes in, the algorithm will firstly verified the similar input field semantics with the newly inputs, if successful, directly use the same input fields information from the old file.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Original code for afl-analysis:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> RESP_NONE:     SAYF(<span class="string">&quot;no-op block\n&quot;</span>); <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> RESP_MINOR:    SAYF(<span class="string">&quot;superficial content\n&quot;</span>); <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> RESP_VARIABLE: SAYF(<span class="string">&quot;critical stream\n&quot;</span>); <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> RESP_FIXED:    SAYF(<span class="string">&quot;\&quot;magic value\&quot; section\n&quot;</span>); <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> RESP_LEN:      SAYF(<span class="string">&quot;suspected length field\n&quot;</span>); <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> RESP_CKSUM:    SAYF(<span class="string">&quot;suspected cksum or magic int\n&quot;</span>); <span class="keyword">break</span>;</span><br><span class="line"><span class="keyword">case</span> RESP_SUSPECT:  SAYF(<span class="string">&quot;suspected checksummed block\n&quot;</span>); <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>AFL persistant mode:</p>
+<ul>
+<li>Use a long-live process to test multiple inputs. </li>
+<li>The program and the inputs are required to be stateless, which means we must guarantee that in different runs the memory structure of the process is unchanged (does not corrupted by previous runs).</li>
+</ul>
+</li>
+<li><p>AFL LLVM mode:</p>
+<ul>
+<li>Use the LLVM Intermedia Language to inject the instruments, compile handles optimization. Might because of the reduction of function jumps (trampoline). </li>
+<li>As high as 2x faster runtime. </li>
+<li>In file afl-clang-fast.c and afl-llvm-pass.so.cc. </li>
+<li><strong>__afl_prev_loc</strong> and <strong>__afl_area_ptr</strong> being declared in afl_llvm_rt.o.c, and being referenced as (GlobalValue::ExternalLinkage, GlobalVariable::GeneralDynamicTLSModel) in the afl_llcm_pass.so.cc.</li>
+</ul>
+</li>
 </ul>
 </div><div class="tags"><a href="/blog/tags/random-notes/"><i class="fa fa-tag"></i>random_notes</a></div><div class="post-nav"><a class="pre" href="/blog/2020/12/04/How_to_read_papers/">How to read papers</a><a class="next" href="/blog/2019/10/19/Ubuntu_CUDA_Installation/">Ubuntu CUDA installation</a></div></div></div></div><div class="pure-u-1-4 hidden_mid_and_down"><div id="sidebar"><div class="widget"><form class="search-form" action="//www.google.com/search" method="get" accept-charset="utf-8" target="_blank"><input type="text" name="q" maxlength="20" placeholder="Search"/><input type="hidden" name="sitesearch" value="https://github.com/SteveLeungYL/blog"/></form></div><div class="widget"><div class="widget-title"><i class="fa fa-folder-o"> Categories</i></div><ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/blog/categories/Fuzzer/">Fuzzer</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/General/">General</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/Git/">Git</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/blog/categories/Python/">Python</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-star-o"> Tags</i></div><div class="tagcloud"><a href="/blog/tags/random-notes/" style="font-size: 15px;">random_notes</a> <a href="/blog/tags/blogs/" style="font-size: 15px;">blogs</a></div></div><div class="widget"><div class="widget-title"><i class="fa fa-file-o"> Recent</i></div><ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/blog/2020/12/04/How_to_read_papers/">How to read papers</a></li><li class="post-list-item"><a class="post-list-link" href="/blog/2020/11/30/AFL_note/">AFL_Note</a></li><li class="post-list-item"><a class="post-list-link" href="/blog/2019/10/19/Ubuntu_CUDA_Installation/">Ubuntu CUDA installation</a></li><li class="post-list-item"><a class="post-list-link" href="/blog/2019/08/27/Python_Multi_Processing/">Python Multi-Processing</a></li><li class="post-list-item"><a class="post-list-link" href="/blog/2019/08/25/Useful_Git_Commands/">Useful Git Commands</a></li></ul></div><div class="widget"><div class="widget-title"><i class="fa fa-external-link"> Links</i></div><ul></ul><a href="http://www.example1.com/" title="site-name1" target="_blank">site-name1</a><ul></ul><a href="http://www.example2.com/" title="site-name2" target="_blank">site-name2</a><ul></ul><a href="http://www.example3.com/" title="site-name3" target="_blank">site-name3</a></div></div></div><div class="pure-u-1 pure-u-md-3-4"><div id="footer">Copyright © 2020 <a href="/blog/." rel="nofollow">Yu Liang's Blog.</a> Powered by<a rel="nofollow" target="_blank" href="https://hexo.io"> Hexo.</a><a rel="nofollow" target="_blank" href="https://github.com/tufu9441/maupassant-hexo"> Theme</a> by<a rel="nofollow" target="_blank" href="https://github.com/pagecho"> Cho.</a></div></div></div><a class="show" id="rocket" href="#top"></a><script type="text/javascript" src="/blog/js/totop.js?v=0.0.0" async></script><script type="text/javascript" src="//cdn.jsdelivr.net/gh/fancyapps/fancybox/dist/jquery.fancybox.min.js" async></script><script type="text/javascript" src="/blog/js/fancybox.js?v=0.0.0" async></script><link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox/dist/jquery.fancybox.min.css"><script type="text/javascript" src="/js/copycode.js" successtext="Copy Successed!"></script><link rel="stylesheet" type="text/css" href="/css/copycode.css"><script type="text/javascript" src="/blog/js/codeblock-resizer.js?v=0.0.0"></script><script type="text/javascript" src="/blog/js/smartresize.js?v=0.0.0"></script></div></body></html>
