@@ -18,7 +18,7 @@
 <li><input disabled="" type="checkbox"> Fork is not scalable.</li>
 <li><input disabled="" type="checkbox"> fork() needs to update the reverse mapping of a physical page for swapping under memory contention, which is a well-known scalability bottleneck in the current Linux kernel [8, 9, 11]. (In paper Designing New Operating Primitives to Improve Fuzzing Performance)</li>
 <li><input disabled="" type="checkbox"> combine fuzzing with symbolic execution [13, 27, 36]. (In paper Designing New Operating Primitives to Improve Fuzzing Performance)</li>
-<li><input disabled="" type="checkbox"> <ol start="3">
+<li><input checked="" disabled="" type="checkbox"> <ol start="3">
 <li>Evolving the input queue. (In technical_details.txt) 3 links.</li>
 </ol>
 </li>
@@ -27,8 +27,6 @@
 <li><input disabled="" type="checkbox"> Forward Symbolic analysis. (Not finished)</li>
 </ul>
 <ul>
-<li><p>afl_clang_fast use compiler level instrumentation, instead of the more crude assembly-level rewriting. Could be much faster than traditional methods, not feasible with GCC. I still do not understand the how that works.</p>
-</li>
 <li><p>C++ <strong>__thread</strong> keyword. Global variables but no need for across threads global protection’s values. If the variables are shared between threads, then each thread will maintain its own variable version. Can only works with Plain Old Data, cannot work with class, struct, union etc. (<strong><em>C language model</em></strong>)</p>
 </li>
 <li><p> AFL can generate larger size mutations than the original inputs, however, it depends on whether the program has character over character level identifications.</p>
@@ -97,6 +95,7 @@
 </li>
 <li><p>AFL LLVM mode:</p>
 <ul>
+<li>Afl_clang_fast use compiler level instrumentation, instead of the more crude assembly-level rewriting. Could be much faster than traditional methods, not feasible with GCC. I still do not understand the how that works.</li>
 <li>Use the LLVM Intermedia Language to inject the instruments, compile handles optimization. Might because of the reduction of function jumps (trampoline). </li>
 <li>As high as 2x faster runtime. </li>
 <li>In file afl-clang-fast.c and afl-llvm-pass.so.cc. </li>
@@ -117,7 +116,7 @@
 </ul>
 </li>
 <li>Create a duel file system to cache seed writing to the disk. Cache the file on memory.</li>
-<li>Shared In_memory Test_case log. For AFL syncing. Shared across different processes of AFL. Because it is in memory, it could be very fast, and avoid file system read/write violations and files iterations (latency). </li>
+<li>Shared In_memory Test_case log. For AFL syncing. Shared across different processes of AFL. Because it is in memory, it could be very fast, and avoid file system read/write violations and files it erations (latency). </li>
 </ol>
 </li>
 </ul>
