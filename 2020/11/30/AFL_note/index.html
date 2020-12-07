@@ -18,10 +18,7 @@
 <li><input disabled="" type="checkbox"> Fork is not scalable.</li>
 <li><input disabled="" type="checkbox"> fork() needs to update the reverse mapping of a physical page for swapping under memory contention, which is a well-known scalability bottleneck in the current Linux kernel [8, 9, 11]. (In paper Designing New Operating Primitives to Improve Fuzzing Performance)</li>
 <li><input disabled="" type="checkbox"> combine fuzzing with symbolic execution [13, 27, 36]. (In paper Designing New Operating Primitives to Improve Fuzzing Performance)</li>
-<li><input checked="" disabled="" type="checkbox"> <ol start="3">
-<li>Evolving the input queue. (In technical_details.txt) 3 links.</li>
-</ol>
-</li>
+<li><input disabled="" type="checkbox"> Evolving the input queue. (In technical_details.txt) 3 links.</li>
 <li><input checked="" disabled="" type="checkbox"> Perf_tips.txt</li>
 <li><input checked="" disabled="" type="checkbox"> env_variables.txt</li>
 <li><input disabled="" type="checkbox"> Forward Symbolic analysis. (Not finished)</li>
@@ -61,7 +58,6 @@
 </ul>
 </li>
 <li>Paper “ProFuzzer: On-the-ﬂy Input Type Probing for Better Zero-day Vulnerability Discovery”<ul>
-<li><strong>Is it really that practical? I don’t think the field identification is accurate.</strong></li>
 <li>Not using random mutations from the AFL, but use the heuristic from the fuzzing input analysis (input semantic) to put more focus on more targeted mutations. For example, not mutating <strong>raw data</strong> input sections etc. </li>
 <li>Two step process:<ol>
 <li>Iterating bytes with all possible values (0x00 to 0xff). Gain the rough idea of input data field semantics. </li>
@@ -116,7 +112,7 @@
 </ul>
 </li>
 <li>Create a duel file system to cache seed writing to the disk. Cache the file on memory.</li>
-<li>Shared In_memory Test_case log. For AFL syncing. Shared across different processes of AFL. Because it is in memory, it could be very fast, and avoid file system read/write violations and files it erations (latency). </li>
+<li>Shared In_memory Test_case log. For AFL syncing. Shared across different processes of AFL. Because it is in memory, it could be very fast, and avoid file system read/write violations and files iterations (latency). </li>
 </ol>
 </li>
 </ul>
