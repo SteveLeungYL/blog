@@ -3,7 +3,8 @@
 <li><p><strong>Rvalue References</strong>:</p>
 <ul>
 <li>Lvalue: value with actual memory address.</li>
-<li>Rvalue: the value itself. It exists in the middle of the expressions, or in function return etc. Rvalue cannot be bind to actual reference type before. For example, <strong><em>int&amp; a = 1+2;</em></strong> will not works. After C++11, you can use &amp;&amp; for Rvalue reference, it directly bind the Rvalue to the reference type, without copying instructions.</li>
+<li>Rvalue: the value itself. It exists in the middle of the expressions, or in function return etc. Rvalue disappear right after the instruction. Rvalue cannot be bind to actual reference type before. For example, <strong><em>int&amp; a = 1+2;</em></strong> will not works. After C++11, you can use &amp;&amp; for Rvalue reference, it directly bind the Rvalue to the reference type, without copying instructions. </li>
+<li>Pure Rvalue: numbers, actual char values such as ‘a’, Lambda expressions.</li>
 <li>Rvalue reference usage: std::move(), std::unique_ptr() etc. To reduce copying overhead for moving the variables.</li>
 <li>Addition: <ul>
 <li><strong><em>for (auto b:a) {}</em></strong>: value type iteration.</li>
@@ -56,6 +57,18 @@
 <li><p><strong>nullptr</strong></p>
 <ul>
 <li>Usage: to representing <strong>NULL</strong>. Use for null pointer.</li>
+</ul>
+</li>
+<li><p>Difference between <strong>const</strong> and <strong>constexpr</strong></p>
+<ul>
+<li><p>const: read-only.</p>
+</li>
+<li><p>constexpr: <strong><em>actually constant value</em></strong>, should be able to determine its value at compile time, and not change at all at runtime!</p>
+</li>
+<li><p>Errors that could be caused by using const as actual constant:</p>
+  <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">constexpr</span> <span class="keyword">int</span> <span class="title">FivePlus</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123; <span class="keyword">return</span> x+<span class="number">5</span>;&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">g</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span> x = <span class="number">5</span>;</span><br><span class="line">    C&lt;x&gt; c1; <span class="comment">// OK!!!</span></span><br><span class="line">    *(<span class="keyword">int</span> *)(&amp;x) = <span class="number">6</span>; <span class="comment">// Still OK! </span></span><br><span class="line">    C&lt;x&gt; c2; <span class="comment">// Still OK! But c2 is C&lt;5&gt;, not C&lt;6&gt;!</span></span><br><span class="line">    C&lt;FivePlus(x)&gt; c3; <span class="comment">// Still OK! c3 is C&lt;10&gt;!</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>, x); <span class="comment">// can be either 5 or 6!!!</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">int</span>* p = &amp;x;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>, *p); <span class="comment">// can be either 5 or 6!!!</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>constexpr function: function that can be used in constant expression, for example, used for declaring the size of a variable. (as shown above) The results of the return value should be able to determined at compile time.</p>
+</li>
 </ul>
 </li>
 </ol>
